@@ -8,8 +8,9 @@
 ## Fajny zestaw słów do zadania pamięciowego lub att blinka jest w
 ## grant.sonata/pilot/memtrain
 
+library(stringr)
 source('~/cs/code/r/tasks/task/task.R')
-db.connect('task')
+## db.connect('task')
 TASK.NAME <<- 'rsvpem'
 
 FIXATION.TIME = 500
@@ -22,9 +23,24 @@ NOF.ITEMS = 13
 words = readRDS('nawl.rds')
 words = words[words$Gram == 3,]
 words$val = st(words$val_M_all)
-neg = words$NAWL_word[words$val < -1.5][1:40]
-neu = words$NAWL_word[abs(words$val) < .4]
-pos = words$NAWL_word[abs(words$val) > 1.5][1:40]
+
+neg = words$NAWL_word[words$val < -1.5]
+neg.len = str_length(neg)
+neg = neg[neg.len <= 6]
+
+## Tylko według kryterium .5 wychodzi 27 słów neutralnych
+neu = words$NAWL_word[abs(words$val) < .5]
+neu.len = str_length(neu)
+neu = neu[neu.len <= 6]
+
+pos = words$NAWL_word[abs(words$val) > 1.5]
+pos.len = str_length(pos)
+pos = pos[pos.len <= 6]
+
+dis = words$NAWL_word[abs(words$val) < .5]
+dis.len = str_length(dis)
+dis = (dis[dis.len >= 9])[1:79]
+
 rm(words)
 
 WINDOW$set.visible(T)
@@ -32,7 +48,7 @@ WINDOW$set.mouse.cursor.visible(T)
 
 FX = fixation(WINDOW, size = .02)
 
-trial.code = function(trial, t1em = sample(c('neg', 'neu', 'pos'), 1), t1pos = sample(3:5, 1), t2lag = sample(c(2, 4, 6), 1)){
+trial.code = function(trial, t1em = sample(c('neg', 'neu', 'pos'), 1), t1pos = sample(3:5, 1), t2lag = sample(c(2, 4, 6), 1), i = 1){
     ## Kod specyficzny dla zadania
     ## ...
     ## Szablon
@@ -129,9 +145,26 @@ trial.code = function(trial, t1em = sample(c('neg', 'neu', 'pos'), 1), t1pos = s
     }
 }
 
-gui.show.instruction("Za chwilę pojawi się okno danych osobowych")
-## gui.user.data()
-USER.DATA = list(name = 'admin', age = 37, gender = 'M')
-cnd = 'same-emotion' ## db.random.condition(c('same-emotion', 'diff-emotion', 'same-imagine', 'diff-imagine'))
-run.trials(trial.code, expand.grid(t1em = c('neg', 'neu', 'pos'), t1pos = 3:5, t2lag = c(2, 4, 6)), condition = cnd)
+gui.show.instruction("W czasie eksperymentu obowiązuje cisza. Wyłącz telefon komórkowy.
+W razie jakichkolwiek wątpliwości nie wołaj osoby prowadzącej, tylko podnieś do góry rękę.
+Osoba prowadząca podejdzie w dogodnym momencie i postara się udzielić wszelkich wyjaśnień. 
+Badanie jest anonimowe.
+
+Za chwilę zostaniesz poproszona/y o podanie danych: wieku, płci oraz pseudonimu.
+Pseudonim składa się z inicjałów (małymi literami) oraz czterech cyfr:
+dnia i miesiąca urodzenia (np.  ms0706).")
+gui.user.data()
+
+gui.show.instruction("Teraz rozpocznie się zadanie wykrywania słów innego koloru.
+Zadanie to składa się z serii prób, w trakcie których na ekranie komputera prezentowane są
+szybko, jedno po drugim, różne słowa. Większość prezentowanych słów ma kolor biały.
+Dwa spośród tych słów są zielone.
+
+Zadanie to polega na napisaniu, po każdej próbie, jakie było pierwsze i jakie było drugie
+słowo w kolorze zielonym.")
+
+run.trials(trial.code, expand.grid(t1em = c('neg', 'neu', 'pos'), t1pos = 3:5, t2lag = c(2, 4, 6), i = 1:5), condition = 'default')
+
+## Dalszy etap procedury
+download.run.task("mcmtest")
 if(!interactive())quit("no")
