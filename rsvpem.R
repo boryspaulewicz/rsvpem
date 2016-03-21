@@ -28,7 +28,7 @@ neg = words$NAWL_word[words$val < -1.5]
 neg.len = str_length(neg)
 neg = neg[neg.len <= 6]
 
-## Tylko według kryterium .5 wychodzi 27 słów neutralnych
+## Tylko według kryterium .5 wychodzi 27 słów neutralnych - tyle ich potrzeba dla T2
 neu = words$NAWL_word[abs(words$val) < .5]
 neu.len = str_length(neu)
 neu = neu[neu.len <= 6]
@@ -55,8 +55,9 @@ trial.code = function(trial, t1em = sample(c('neg', 'neu', 'pos'), 1), t1pos = s
     t2pos = t1pos + t2lag
     ## Mieszamy
     neg = sample(neg)
-    word = sample(neu)
+    neu = sample(neu)
     pos = sample(pos)
+    dis = sample(dis)
     ## if(trial == 1){
     state = 'press-space'
     ## }else{ state = 'show-fixation' }
@@ -104,9 +105,11 @@ trial.code = function(trial, t1em = sample(c('neg', 'neu', 'pos'), 1), t1pos = s
             }
             ## Pierwszy target ma kontrolowaną walencję
             if(item == t1pos){
-                stim = list(neg = neg, neu = word, pos = pos)[[t1em]][item]
+                stim = list(neg = neg, neu = neu, pos = pos)[[t1em]][item]
+            }else if(item == t2pos){
+                stim = neu[item]
             }else{
-                stim = word[item]
+                stim = dis[item]
             }
             TXT$set.string(stim)
             bounds = TXT$get.local.bounds()
